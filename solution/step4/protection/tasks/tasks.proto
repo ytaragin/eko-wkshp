@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option go_package = "../tasks";
+
+
+
+package tasks;
+
+
+// The greeting service definition.
+service Tasks {
+  // Sends a greeting
+  rpc CreateTask (CreateTaskRequest) returns (TaskMessage) {}
+  rpc UpdateTask (TaskMessage) returns (TaskMessage) {}
+}
+
+message CreateTaskRequest {
+}
+
+
+// The response message containing the greetings
+message TaskMessage {
+  enum TaskStatus {
+    CREATED =0;
+    INPROGRESS = 1;
+    COMPLETE = 2;
+    ERROR = 10;
+    UNKNOWN = 99;
+  }
+
+  string taskid = 1;
+  TaskStatus status = 2;
+}

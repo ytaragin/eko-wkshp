@@ -358,7 +358,7 @@ curl localhost:30002/vpgs
 ```
 
 
-Step 6 Update Task Status
+# Step 6 Update Task Status
 We need a function to update the status of the task that it is in progress
 ```go
 
@@ -403,7 +403,7 @@ log.Printf("Task %s status set to INPROGRESS", taskid)
 
 Build and test your function.
 
-Step 7 - Monitor VPG and update Task when done
+# Step 7 - Monitor VPG and update Task when done
 In this step we will put the finishing touches on our service.
 When the status of the VPG is 100% complete, we can mark the Task as complete.
 Ideally, there would be an event sent via Kafka when it's complete but in this workshop we will just poll the Tunnel service to check the status.
