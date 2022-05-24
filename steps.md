@@ -104,6 +104,12 @@ kind load docker-image prot-container:l1 --name workshop
 ```
 
 Copy the file protection.yaml to protection-workshop/templates
+```shell
+cp protection.yaml protection-workshop/templates
+
+```
+
+
 Then add to kubernetes
 ```shell
 helm upgrade wkshp protection-workshop
