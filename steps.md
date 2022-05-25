@@ -46,6 +46,7 @@ import (
 Add a handler to you go program
 ```go
 func getping(c *gin.Context) {
+	//return simple json with a 200 code
 	c.JSON(200, gin.H{
 		"message": "protection pong",
 	})
@@ -59,7 +60,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/ping", getping)
+	r.GET("/ping", getping) 
 
 	log.Println("Starting to listen...")
 	r.Run() // listen and serve on 0.0.0.0:8080
@@ -96,7 +97,8 @@ CMD ["protection"]
 ```
 
 Build the docker container and push to kubernetes
-_Note:_ Due to DNS configuration in the default kind it's important to always use a tag
+
+*Note:* Due to DNS configuration in the default kind it's important to always use a tag
 ```shell
 docker build -t prot-container:l1 .
 
@@ -105,14 +107,14 @@ kind load docker-image prot-container:l1 --name workshop
 
 Copy the file protection.yaml to protection-workshop/templates
 ```shell
-cp protection.yaml protection-workshop/templates
+cp ../protection.yaml ../protection-workshop/templates
 
 ```
 
 
 Then add to kubernetes
 ```shell
-helm upgrade wkshp protection-workshop
+helm upgrade wkshp ../protection-workshop
 
 ```
 
@@ -126,7 +128,7 @@ curl localhost:30004/ping
 We will now start  accessing services.
 To make testing easier - let's make those endpoints configurable
 
-Add these defintions in at ths top of your file.
+Add these defintions in at ths top of your prot-svc.go file (after the imports)
 ``` go
 var TUNNEL_URL string
 var TASKS_GRPC_HOST string
@@ -161,8 +163,8 @@ r.POST("/vpg", createVPG)
 
 
 
-and then add a new function which imlements the handler.
-This function is the main function we will be expanding over the workshop to handle all the VPG creation logic and orchestration.
+and then add a new function which implements the handler.
+This function is the primary function we will be expanding over the workshop to handle all the VPG creation logic and orchestration.
 
 ``` go
 func createVPG(c *gin.Context) {
@@ -200,10 +202,6 @@ So copy tasks/tasks to the protection folder
 cp -r ../tasks/tasks .
 ```
 
-Add to your imports (we will name it to make it easier to reference)
-```go
-	pb "tasks/tasks"
-```
 
 Now we can add code to make the call to the Tasks Service
 ```go
@@ -230,8 +228,18 @@ func createTask() (string, error) {
 }
 
 ```
+Add to your imports the missing imports (we will name it pb to make it easier to reference)
+```go
+	pb "tasks/tasks"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
-and in the function createVPG we can call that code
+```
+
+
+
+and in the function createVPG we can call that code after we parse the body of the incoming request (with BindJSON).
+Lets also update the return to return the new taskid
 ```go
 	taskid, err := createTask()
 	if err != nil {
@@ -246,11 +254,12 @@ and in the function createVPG we can call that code
 
 
 
-To test this we need to add the task code to our docker file
+To run this we need to add the task code to our docker file
 ```dockerfile
 FROM golang:1.18
 
 
+#### THIS IS THE NEW LINE
 COPY ./tasks /usr/local/go/src/tasks/tasks
 
 
@@ -282,10 +291,10 @@ curl -X POST localhost:30004/vpg -d '{"vpgname": "VPG1"}'
 kubectl get pods
 
 # Take real name for pod
-kubectl logs protection-sdsdfsdf
+kubectl logs protection-<THE NAME FROM THE get pods COMMAND>
 ```
 
-To save copy time we can also run our docker outside of k8s
+An alternative to uplaoding the image to K8S and  time we can also run our docker outside of k8s
 ```shell
 docker run -it --rm  -e TASKSHOST='localhost:30003' -e TUNNELURL='http://localhost:30002' --network="host"  --name prot prot-container:l1 
 
