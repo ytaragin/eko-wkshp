@@ -1,0 +1,164 @@
+swagger: "2.0"
+info:
+  description: "This is the swagger that describes the various rest endpoints used in the DSCC Demo"
+  version: "1.0.0"
+  title: "DSCC-like Service Demo"
+  contact:
+    email: "ytstuff@taragin.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+tags:
+- name: "Task Service"
+  description: "Viewing tasks status (Full operations are via GRPC)"
+- name: "Tunnel Service"
+  description: "Operations on ZVM via the tunnel"
+- name: "Protection Service"
+  description: "The service you will create"
+
+schemes:
+- "http"
+paths:
+  /tasks:
+    get:
+      tags:
+      - "Task Service"
+      summary: "See all the existing tasks and their status"
+      description: ""
+      operationId: "allTasks"
+      produces:
+      - "text/plain"
+      responses:
+        "400":
+          description: "Error"
+  /task/{taskid}:
+    get:
+      tags:
+      - "Task Service"
+      summary: "Create a new task"
+      description: ""
+      operationId: "createTask"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "taskid"
+        in: "path"
+        description: "ID of task to return"
+        required: true
+        type: "string"
+        format: "guid"
+      responses:
+        "404":
+          description: "Task not found"
+  /vpgs:
+    get:
+      tags:
+      - "Tunnel Service"
+      summary: "See all the existing vpgs and their completion percentage"
+      description: ""
+      operationId: "allVpgs"
+      produces:
+      - "text/plain"
+      responses:
+        "400":
+          description: "Error"
+  /vpg:
+    post:
+      tags:
+      - "Tunnel Service"
+      summary: "Create a new VPG"
+      description: ""
+      operationId: "createTunnelVPG"
+      produces:
+      - "application/json"
+      responses:
+        "400":
+          description: "Error"
+
+  /vpg/{vpgid}:
+    get:
+      tags:
+      - "Tunnel Service"
+      summary: "Get Status of VPG"
+      description: ""
+      operationId: "getVpg"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "vpgid"
+        in: "path"
+        description: "ID of vpg to return"
+        required: true
+        type: "string"
+        format: "guid"
+      responses:
+        "404":
+          description: "Vpg not found"
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Vpg"
+  /vpg_:
+    post:
+      tags:
+      - "Protection Service"
+      summary: "Create a new VPG (Ignore the _ its due to swagger issues)"
+      description: ""
+      operationId: "createVPG"
+      produces:
+      - "application/json"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Detials of VPG to be created"
+        required: true
+        schema:
+          $ref: "#/definitions/VpgCreation"      
+      responses:
+        "400":
+          description: "Error"  
+        "200":
+          $ref: "#/definitions/VpgResponse"
+  
+
+definitions:
+  Vpg:
+    type: "object"
+    required:
+    - "vpgid"
+    - "completed"
+    properties:
+      vpgid:
+        type: "string"
+        format: "guid"
+      vpgname:
+        type: "string"
+      completed:
+        type: "integer"
+  VpgCreation:
+    type: "object"
+    required:
+    - "vpgname"
+    properties:
+      vpgname:
+        type: "string"
+  VpgResponse:
+    type: "object"
+    required:
+    - "vpgid"
+    - "taskid"
+    properties:
+      vpgid:
+        type: "string"
+        format: "guid"
+      taskid:
+        type: "string"
+        format: "guid"
+
+
+externalDocs:
+  description: "Relates to DSCC Demo"
+  url: "https://github.com/ytaragin/eko-wkshp"
+  

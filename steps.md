@@ -1,16 +1,41 @@
 # Step 1 - Create basic Go service
-Create the structure
+## Step Goals
+
+At the end of this step, we will have the basic structure for the new protection service we will be creating.
+
+The service should just print a start up message.
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+- Create a directory called protection
+- You will need to run
+```shell
+go mod init protection
+```
+to initialize the go module
+
+</details>
+
+## Walkthrough
+<details>
+  <summary>Detailed Walkthrough</summary>
+
+### Create the structure
+Run these commands in the workshop directory
 ```shell
 # make directory
 mkdir protection
 
+# all future commands should be run from within the protection directory
 cd protection
 
 # Initialize the go package 
 go mod init protection
-touch go.sum
 ```
-
+### Create go file
 Make a basic go file prot-svc.go
 ```go 
 package main
@@ -22,15 +47,35 @@ func main() {
 
 }
 ```
-
-Run the program
+###  Run the program
 ```shell
 go run .
 ```
 
+</details>
 
 
 # Step 2 - Add a Rest endpoint
+## Step Goals
+In this step add the simple ping rest endpoint so we can start running this as a service.
+
+At the end of this step you should have running service that answers curl requests to the ping endpoint.
+
+
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+
+
+</details>
+
+## Walkthrough
+<details>
+ <summary>Detailed Walkthrough</summary>
+
 Run to add gonic to project
 ```shell
 go get github.com/gin-gonic/gin
@@ -78,7 +123,25 @@ go run .
 curl localhost:8080/ping
 ```
 
+</details>
+
 # Step 3 - Wrap with docker and run in kubernetes
+
+## Step Goals
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+
+
+</details>
+
+## Walkthrough
+<details>
+ <summary>Detailed Walkthrough</summary>
+
 
 Create a file Dockerfile to build the container
 ```docker
@@ -125,7 +188,23 @@ Can now test against kuberentes
 curl localhost:30004/ping
 ```
 
+</details>
+
 # Step 4 Add new endpoint and call to Tasks Service
+## Step Goals
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+
+
+</details>
+
+## Walkthrough
+<details>
+ <summary>Detailed Walkthrough</summary>
 
 We will now start  accessing services.
 To make testing easier - let's make those endpoints configurable
@@ -309,8 +388,24 @@ curl localhost:30001/tasks
 
 ```
 
+</details>
 
 # Step 5  Call Tunnel to create VPG
+## Step Goals
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+
+
+</details>
+
+## Walkthrough
+<details>
+ <summary>Detailed Walkthrough</summary>
+
 We can add a function to make a POST call to the Tunnel Service
 
 ```go
@@ -373,9 +468,24 @@ curl -X POST localhost:8080/vpg -d '{"vpgname": "VPG1"}'
 curl localhost:30002/vpgs
 
 ```
-
+</details>
 
 # Step 6 Update Task Status
+## Step Goals
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+
+
+</details>
+
+## Walkthrough
+<details>
+ <summary>Detailed Walkthrough</summary>
+
 We need a function to update the status of the task that it is in progress
 ```go
 
@@ -420,12 +530,30 @@ log.Printf("Task %s status set to INPROGRESS", taskid)
 
 Build and test your function.
 
+</details>
+
 # Step 7 - Monitor VPG and update Task when done
 In this step we will put the finishing touches on our service.
 When the status of the VPG is 100% complete, we can mark the Task as complete.
 Ideally, there would be an event sent via Kafka when it's complete but in this workshop we will just poll the Tunnel service to check the status.
 
 We will use the /vpg/<vpgid> API on the tunnel service to get the status of the VPG.
+
+## Step Goals
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+
+
+</details>
+
+## Walkthrough
+<details>
+ <summary>Detailed Walkthrough</summary>
+
 
 
 Lets create a function to get the completion percentage from the Tunnel SVC
@@ -511,7 +639,7 @@ go pollAndCheckStatus(vpgid, taskid)
 
 Build and test your function.
 Make sure to check the Task service for the COMPLETE status
-
+</details>
 
 
 
