@@ -9,6 +9,8 @@ info:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 tags:
+- name: "All Services"
+  description: "Function all services provide"
 - name: "Task Service"
   description: "Viewing tasks status (Full operations are via GRPC)"
 - name: "Tunnel Service"
@@ -19,6 +21,20 @@ tags:
 schemes:
 - "http"
 paths:
+  /ping:
+    get:
+      tags:
+      - "All Services"
+      summary: "Health check to see if service is alive"
+      description: ""
+      operationId: "ping"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Ping"
   /tasks:
     get:
       tags:
@@ -156,6 +172,13 @@ definitions:
       taskid:
         type: "string"
         format: "guid"
+  Ping:
+    type: "object"
+    required:
+    - "message"
+    properties:
+      message:
+        type: "string"
 
 
 externalDocs:
