@@ -1,7 +1,7 @@
-# Step 1 - Create basic Go service
-## Step Goals
+# Section 1 - Create basic Go service
+## Section Goals
 
-At the end of this step, we will have the basic structure for the new protection service we will be creating.
+At the end of this Section, we will have the basic structure for the new protection service we will be creating.
 
 The service should just print a start up message.
 
@@ -55,12 +55,13 @@ go run .
 </details>
 
 
-# Step 2 - Add a Rest endpoint
-## Step Goals
-In this step add the simple ping rest endpoint so we can start running this as a service.
+# Section 2 - Add a Rest endpoint
+## Section Goals
+In this Section add the simple ping rest endpoint so we can start running this as a service.
 
-At the end of this step you should have running service that answers curl requests to the ping endpoint.
+At the end of this Section you should have running service that answers curl requests to the ping endpoint.
 
+We will use the [gin-gonic library](https://github.com/gin-gonic/gin) for our http server as is used in DSCC services.
 
 
 ## Guidance
@@ -68,7 +69,33 @@ At the end of this step you should have running service that answers curl reques
 <details>
   <summary>Tips and Hints</summary>
 
-
+- Add the library to you project using
+```
+go get github.com/gin-gonic/gin
+```
+- Don't forget to update the imports
+- Using gin:
+	- To create an the gin object
+		```go
+		r := gin.Default()
+		```
+	- Use the r object to register your event listeners
+		```go
+		r.GET("/ping", pingHandler)
+		```
+	- Handler functions are functions that take one parameter - c *gin.Context
+	- To return JSON from an http request you can use the JSON function on the Context object
+	```go
+		c.JSON(200, gin.H{
+		"key": "value",
+	    })
+	```
+	- To start the listener
+		```go
+		r.Run() 
+		```
+	- The default port is 8080
+	- Use curl to test your service
 
 </details>
 
@@ -76,7 +103,7 @@ At the end of this step you should have running service that answers curl reques
 <details>
  <summary>Detailed Walkthrough</summary>
 
-Run to add gonic to project
+Run on the command line to add gonic to project
 ```shell
 go get github.com/gin-gonic/gin
 
@@ -125,16 +152,55 @@ curl localhost:8080/ping
 
 </details>
 
-# Step 3 - Wrap with docker and run in kubernetes
+# Section 3 - Wrap with docker and run in kubernetes
 
-## Step Goals
+## Section Goals
+In this Section, we will take the service we created and wrap it in a Docker container and then deploy to Kubernetes using Helm.  
+
+
+
+Due to the Kind configured Kubernetes, after building the docker container, it must be pushed into the Kubernetes using the Kind command line.
+
+**Note:** You must use a tag with the container name such as prot-container:l1 so Kubernetes can find it locally.
+
+You will need create a helm template file for the protection service (creating a deployment and a service that exposes port 30004 as a NodePort. Use the namespace variable defined in the values.yaml file. Call your deployment protection and your service protection-svc.
+Add the file to the protection-workshop helm chart. Then use helm to upgrade our wkshp deployment with the new service.
+
 
 ## Guidance
 
 <details>
   <summary>Tips and Hints</summary>
 
+- Here is a Dockerfile that can be used to build and run the portection service:
+<details>
+  <summary>Dockerfile</summary>
 
+```docker
+FROM golang:1.18
+
+
+WORKDIR /usr/src/app
+
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+COPY *.go ./
+RUN go build -v -o /usr/local/bin ./...
+
+CMD ["protection"]
+
+```
+</details>
+
+- To create a helm template file, you can copy the file protection-workshop/templates/tunnel.yaml to a file called protection.yaml and modify accordingly.
+Those two deployments should be structurally very similar. 
+- Remember to use 30004 as the NodePort. It is the one the Kubernetes instance is configured to expose.
+
+- Alternatively, in the root directory of the workshop is a file protection.yaml which can be used.
+
+- Use curl, to test the service
 
 </details>
 
@@ -143,7 +209,7 @@ curl localhost:8080/ping
  <summary>Detailed Walkthrough</summary>
 
 
-Create a file Dockerfile to build the container
+Create a file called Dockerfile in the protection directory that will build the container
 ```docker
 FROM golang:1.18
 
@@ -161,23 +227,23 @@ CMD ["protection"]
 
 ```
 
-Build the docker container and push to kubernetes
-
-*Note:* Due to DNS configuration in the default kind it's important to always use a tag
+Now we can build the docker container and push to kubernetes
+Run these commands in the protection directory
 ```shell
+# This builds the docker container
 docker build -t prot-container:l1 .
 
+# This pushes the docker container into kubernetes where it can be found
 kind load docker-image prot-container:l1 --name workshop
 ```
 
-Copy the file protection.yaml to protection-workshop/templates
+Copy the provided protection.yaml file to protection-workshop/templates
 ```shell
 cp ../protection.yaml ../protection-workshop/templates
 
 ```
 
-
-Then add to kubernetes
+Now we can push our service into kubernetes
 ```shell
 helm upgrade wkshp ../protection-workshop
 
@@ -190,15 +256,84 @@ curl localhost:30004/ping
 
 </details>
 
-# Step 4 Add new endpoint and call to Tasks Service
-## Step Goals
+# Section 4 Add new endpoint and call to Tasks Service (steps 1-3)
+## Section Goals
+Now we will start getting in to the main parts of the workshop.
+
+We will add the /vpg Post endpoint to the service. When that end point is called, we will run the flow descirbed in the sequence diagram. At this point of the workshop, we will only create the task in the Task Service. In subsequent Sections, we will fill in more logic.
+
+Calls to the Task Service are made using GRPC. The protobuf definition file can be found in the [tasks/tasks/tasks.proto file](tasks/tasks/tasks.proto).
+You will need to copy the go files into the protection directory (keep them in a tasks subdirectory) so they can be used by the protection service.
+
+You will need to add the endpoints of the GRPC service into your code. 
+You will need to add google.golang.org/grpc and google.golang.org/grpc/credentials/insecure to your project.
+
+You will need to update the docker file to copy the tasks folder with the GRPC stubs into the docker file at the Go Root which is at /usr/local/go/src. (See the tips and hints section for a full DOcker file)
+
+
+Inside Kubernetes, the service is running at tasks-grpc:9001
 
 ## Guidance
 
 <details>
   <summary>Tips and Hints</summary>
 
+- In Go, to parse JSON you need a struct defined that matches the structure and names of the JSON object - except for the case of the letters.
+  **NOTE:** The first character of your field name in the struct, *must* be capitilized.
+- So here is how to parse the JSON of the incoming request:	
+	You can define and create an object like this:
+	```go
+	type RequestObj struct {
+		Field1 string
+	}
 
+	var requestBody RequestObj
+
+	c.BindJSON(&requestBody)
+	```
+	
+
+- To call a GRPC client you must create an object like this
+	```go
+		conn, err := grpc.Dial(TASKS_GRPC_HOST, grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+		if err != nil {
+			log.Printf("did not connect: %v", err)
+			return "", err
+		}
+		defer conn.Close()
+
+		c := pb.NewTasksClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+	```
+	You can then use the object c as a client to the tasks service
+- Here is an updated Dockerfile that can be used to build and run the portection service:
+<details>
+  <summary>Dockerfile</summary>
+
+```docker
+FROM golang:1.18
+
+
+#### THIS IS THE NEW LINE
+COPY ./tasks /usr/local/go/src/tasks/tasks
+
+
+WORKDIR /usr/src/app
+
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+COPY *.go ./
+RUN go build -v -o /usr/local/bin ./...
+
+CMD ["protection"]
+
+```
+</details>
 
 </details>
 
@@ -234,7 +369,7 @@ func main() {
 
 ```
 
-Add a new handler to the Rest configuration 
+In your main function, add a new handler to the Rest configuration 
 
 ```go
 r.GET("/ping", getping)
@@ -261,7 +396,8 @@ func createVPG(c *gin.Context) {
 	}
 
     log.Printf("Received request to create VPG %s", requestBody.VPGName)
-   	c.JSON(200, gin.H{})
+
+	// Add the code below steps here
 
 }
 ```
@@ -311,7 +447,13 @@ func createTask() (string, error) {
 ```
 Add to your imports the missing imports (we will name it pb to make it easier to reference)
 ```go
+Add those two packages to the imports in your file:
+```go
+
 	pb "tasks/tasks"
+
+	"github.com/gin-gonic/gin"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -319,7 +461,7 @@ Add to your imports the missing imports (we will name it pb to make it easier to
 
 
 
-and in the function createVPG we can call that code after we parse the body of the incoming request (with BindJSON).
+and in the function createVPG, after the  we can call that code after we parse the body of the incoming request (with BindJSON).
 Lets also update the return to return the new taskid
 ```go
 	taskid, err := createTask()
@@ -328,7 +470,7 @@ Lets also update the return to return the new taskid
 		return
 	}
     log.Printf("Task Created %s", taskid)
-   	c.JSON(200, gin.H{ "taskid": taskid})
+   	c.JSON(200, gin.H{ "taskid": taskid})  // only return task id so far
 
 
 ``` 
@@ -390,8 +532,14 @@ curl localhost:30001/tasks
 
 </details>
 
-# Step 5  Call Tunnel to create VPG
-## Step Goals
+# Section 5  Call Tunnel to create VPG  (Steps 4-5)
+## Section Goals
+
+We will now extend our CreateVPG handler function to create a VPG after it created a task.
+
+This will be done by calling the Tunnel service using the POST /vpg endpoint.
+
+
 
 ## Guidance
 
@@ -470,8 +618,8 @@ curl localhost:30002/vpgs
 ```
 </details>
 
-# Step 6 Update Task Status
-## Step Goals
+# Section 6 Update Task Status
+## Section Goals
 
 ## Guidance
 
@@ -532,14 +680,14 @@ Build and test your function.
 
 </details>
 
-# Step 7 - Monitor VPG and update Task when done
-In this step we will put the finishing touches on our service.
+# Section 7 - Monitor VPG and update Task when done
+In this Section we will put the finishing touches on our service.
 When the status of the VPG is 100% complete, we can mark the Task as complete.
 Ideally, there would be an event sent via Kafka when it's complete but in this workshop we will just poll the Tunnel service to check the status.
 
 We will use the /vpg/<vpgid> API on the tunnel service to get the status of the VPG.
 
-## Step Goals
+## Section Goals
 
 ## Guidance
 
