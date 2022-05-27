@@ -1,9 +1,9 @@
 # eko-wkshp
 A microservice workshop presented at EKO 2022
 
-![Overview of System](overview/workshop_layout.png)
+![Overview of System](https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/overview/workshop_layout.png)
 
-![Sequence Flow](overview/workshop.png)
+![Sequence Flow](https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/overview/workshop.png)
 
 
 [Rest documentation for the various services in the demo](https://editor.swagger.io/?url=https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/swagger.yaml)
