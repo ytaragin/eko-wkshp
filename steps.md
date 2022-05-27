@@ -280,7 +280,7 @@ Inside Kubernetes, the service is running at tasks-grpc:9001
 
 - In Go, to parse JSON you need a struct defined that matches the structure and names of the JSON object - except for the case of the letters.
   **NOTE:** The first character of your field name in the struct, *must* be capitilized.
-- So here is how to parse the JSON of the incoming request:	
+- So here is how to parse the JSON of the incoming request that is handled by gin-gonic:	
 	You can define and create an object like this:
 	```go
 	type RequestObj struct {
@@ -537,14 +537,38 @@ curl localhost:30001/tasks
 
 We will now extend our CreateVPG handler function to create a VPG after it created a task.
 
-This will be done by calling the Tunnel service using the POST /vpg endpoint.
+This will be done by calling the Tunnel service using the POST /vpg endpoint. The [swagger documentation](https://editor.swagger.io/?url=https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/swagger.yaml) describes the endpoint.
 
-Once you do that update the JSON object return 
+Once you do that update the JSON object returned by the vpg function to include the vpgid as well.
+
+Inside Kubernetes, the tunnel svc endpoint is at http://tunnel-svc:8080
 
 ## Guidance
 
 <details>
   <summary>Tips and Hints</summary>
+
+- Use the http.Post function to make a POST call to the service
+- Here is how you can turn a string into a buffer to be used by the post function
+```go
+	reqBody := bytes.NewBuffer([]byte(mystring))
+```
+
+- The reponse from the tunnel service will be a JSON block which we will need to parse. Earlier, we used a function provided by gin-gonic to parse the JSON. 
+  This is not a gin function so we will need to parse the JSON using standard go functionality - though the concept is similar.
+- Create a struct that matches the fields of the JSON (remember first letter of each field must be capitilized). Then you can use the  decoder object to decode into the object.
+```go
+	// define and create an object
+	type CreateResponse struct {
+		Vpgid     string `json:"vpgid"`
+		Completed int    `json:"completed"`
+	}
+	var retobj CreateResponse
+
+   decoder := json.NewDecoder(resp.Body) // resp is from the POST call
+   	err = decoder.Decode(&retobj) // decode into the defined object
+
+```
 
 
 
@@ -618,14 +642,28 @@ curl localhost:30002/vpgs
 ```
 </details>
 
-# Section 6 Update Task Status
+# Section 6 Update Task Status (Step 6)
 ## Section Goals
+Now that we have initiated the creation of the VPG we can update the Tasks service that the Task is in progress using the UpdateTask endpoint.
 
 ## Guidance
 
 <details>
   <summary>Tips and Hints</summary>
 
+- This is very similar to how we called CreateTask before, except you will need to create an instance of pb.TaskMessage to pass to the UpdateTask function.
+- Here is how you create a struct in go
+```go
+	// if you have type like
+	type MyStruct struct {
+		Field1 int,
+		Field2 string,
+	}
+
+	// you can create an instace
+	myinst := MyStruct{Field1: 10, Field2: "Hello"}
+```
+- Set the status to pb.TaskMessage_INPROGRESS
 
 
 </details>
@@ -659,8 +697,6 @@ func UpdateTask(id string, status pb.TaskMessage_TaskStatus) error {
 	return nil
 
 }
-
-
 ```
 
 We can now update the status of the task in our createVPG function 
@@ -680,29 +716,43 @@ Build and test your function.
 
 </details>
 
-# Section 7 - Monitor VPG and update Task when done
-In this Section we will put the finishing touches on our service.
-When the status of the VPG is 100% complete, we can mark the Task as complete.
-Ideally, there would be an event sent via Kafka when it's complete but in this workshop we will just poll the Tunnel service to check the status.
-
-We will use the /vpg/<vpgid> API on the tunnel service to get the status of the VPG.
+# Section 7 - Monitor VPG and update Task when done (Steps 8-10)
 
 ## Section Goals
+In this Section we will put the finishing touches on our service.
+
+Every few seconds, you can check the /vpg/<vpgid> API on the tunnel service to get the completion status of the VPG.
+When the status of the VPG is 100% complete, mark the Task as complete.
+
+(Ideally, there would be an event sent via Kafka when it's complete but in this workshop we will just poll the Tunnel service to check the status. )
+
+You can call the /tasks endpoint on the task service (using curl) to see when the status is complete.
 
 ## Guidance
 
 <details>
   <summary>Tips and Hints</summary>
 
+- Call the UpdateTask with status of pb.TaskMessage_COMPLETE
+- In go you can sleep via
+	```go
+	time.Sleep(5 * time.Second)
+	```
+- To run a function in the background, use the go keyword
+	```go
+	// if you have a function
+	func pollAndCheckStatus(vpgid string, taskid string) {}
 
+	// you can call in a background thread
+	go pollAndCheckStatus(vpgid, taskid)
+
+	```
 
 </details>
 
 ## Walkthrough
 <details>
  <summary>Detailed Walkthrough</summary>
-
-
 
 Lets create a function to get the completion percentage from the Tunnel SVC
 ```go
@@ -781,7 +831,7 @@ func pollAndCheckStatus(vpgid string, taskid string) {
 Finally, we need to trigger that function as part of our VPG creation flow  at the end of the createVPG handler
 
 ```go
-go pollAndCheckStatus(vpgid, taskid)
+go pollAndCheckStatus(vpgid, taskid) // Calling with go runs the function in a thread
 
 ```
 
