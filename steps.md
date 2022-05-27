@@ -539,7 +539,7 @@ We will now extend our CreateVPG handler function to create a VPG after it creat
 
 This will be done by calling the Tunnel service using the POST /vpg endpoint.
 
-
+Once you do that update the JSON object return 
 
 ## Guidance
 
