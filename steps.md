@@ -1,4 +1,4 @@
-# Stage 1 - Create basic Go service
+# Stage 1 - Create basic Go service {#stage1}
 ## Stage Goals
 
 At the end of this Stage, we will have the basic structure for the new protection service we will be creating.
@@ -55,7 +55,7 @@ go run .
 </details>
 
 
-# Stage 2 - Add a Rest endpoint
+# Stage 2 - Add a Rest endpoint {#stage2}
 ## Stage Goals
 In this Stage add the simple ping rest endpoint so we can start running this as a service.
 
@@ -152,7 +152,7 @@ curl localhost:8080/ping
 
 </details>
 
-# Stage 3 - Wrap with docker and run in kubernetes
+# Stage 3 - Wrap with docker and run in kubernetes {#stage3}
 
 ## Stage Goals
 In this Stage, we will take the service we created and wrap it in a Docker container and then deploy to Kubernetes using Helm.  
@@ -258,7 +258,7 @@ curl localhost:30004/ping
 
 </details>
 
-# Stage 4 Add new endpoint and call to Tasks Service (steps 1-3)
+# Stage 4 Add new endpoint and call to Tasks Service (steps 1-3) {#stage4}
 ## Stage Goals
 Now we will start getting in to the main parts of the workshop.
 
@@ -534,7 +534,7 @@ curl localhost:30001/tasks
 
 </details>
 
-# Stage 5  Call Tunnel to create VPG  (Steps 4-5)
+# Stage 5  Call Tunnel to create VPG  (Steps 4-5) {#stage5}
 ## Stage Goals
 
 We will now extend our CreateVPG handler function to create a VPG after it created a task.
@@ -644,7 +644,7 @@ curl localhost:30002/vpgs
 ```
 </details>
 
-# Stage 6 Update Task Status (Step 6)
+# Stage 6 Update Task Status (Step 6) {#stage6}
 ## Stage Goals
 Now that we have initiated the creation of the VPG we can update the Tasks service that the Task is in progress using the UpdateTask endpoint.
 
@@ -718,7 +718,7 @@ Build and test your function.
 
 </details>
 
-# Stage 7 - Monitor VPG and update Task when done (Steps 8-10)
+# Stage 7 - Monitor VPG and update Task when done (Steps 8-10) {#stage7}
 
 ## Stage Goals
 In this Stage we will put the finishing touches on our service.

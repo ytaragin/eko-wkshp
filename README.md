@@ -13,7 +13,7 @@ A microservice workshop presented at EKO 2022
 
 | Stage      | Description | Sequence Steps | Expected Duration |
 | ----------- | ----------- | ----------- | ----------- |
-| 1 | Create basic Go service | Setup | 8 minutes |
+| [ Stage 1 ](steps.md#stage1) | Create basic Go service | Setup | 8 minutes |
 | 2 | Add a rest endpoint | Setup | 12 Minutes |
 | 3 | Wrap service in docker container and run in Kuberentes | Setup | 10 minutes |
 | 4 | Add VPG creation endpoint and create tasks | Steps 1-3 | 15 minutes |
