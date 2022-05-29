@@ -10,6 +10,15 @@ A microservice workshop presented at EKO 2022
 
 
 
+# Description of Environment
+
+| Service      | Access inside of Kuberentes | Access outside of Kubernetes |
+| ----------- | ----------- | ----------- |
+| Tasks Service Rest endpoint | http://tasks-svc:8080  | http://localhost:30001  |
+| Tasks Service GRPC endpoint | tasks-grpc:9001  | localhost:30003  |
+| Tunnel Service | http://tunnel-svc:8080   | http://localhost:3002  |
+| Protection Service |  http://protection-svc:8080 |  http://localhost:30004 |
+
 
 
 # Useful Commands
