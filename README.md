@@ -9,6 +9,23 @@ A microservice workshop presented at EKO 2022
 [Rest documentation for the various services in the demo](https://editor.swagger.io/?url=https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/swagger.yaml)
 
 
+# Workshop Stage Breakdown
+
+| Stage      | Description | Sequence Steps | Expected Duration |
+| ----------- | ----------- | ----------- | ----------- |
+| 1 | Create basic Go service | Setup | 8 minutes |
+| 2 | Add a rest endpoint | Setup | 12 Minutes |
+| 3 | Wrap service in docker container and run in Kuberentes | Setup | 10 minutes |
+| 4 | Add VPG creation endpoint and create tasks | Steps 1-3 | 15 minutes |
+| 5 | Call tunnel to create VPG | Steps 4-5 | 15 minutes |
+| 6 | Update task status to In Progress | Steps 6 | 15 minutes |
+| 7 | Wait for VPG completion and update task when done | Steps 8-9 | 15 minutes |
+
+
+
+
+
+
 
 # Description of Environment
 

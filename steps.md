@@ -1,7 +1,7 @@
-# Section 1 - Create basic Go service
-## Section Goals
+# Stage 1 - Create basic Go service
+## Stage Goals
 
-At the end of this Section, we will have the basic structure for the new protection service we will be creating.
+At the end of this Stage, we will have the basic structure for the new protection service we will be creating.
 
 The service should just print a start up message.
 
@@ -55,11 +55,11 @@ go run .
 </details>
 
 
-# Section 2 - Add a Rest endpoint
-## Section Goals
-In this Section add the simple ping rest endpoint so we can start running this as a service.
+# Stage 2 - Add a Rest endpoint
+## Stage Goals
+In this Stage add the simple ping rest endpoint so we can start running this as a service.
 
-At the end of this Section you should have running service that answers curl requests to the ping endpoint.
+At the end of this Stage you should have running service that answers curl requests to the ping endpoint.
 
 We will use the [gin-gonic library](https://github.com/gin-gonic/gin) for our http server as is used in DSCC services.
 
@@ -152,10 +152,10 @@ curl localhost:8080/ping
 
 </details>
 
-# Section 3 - Wrap with docker and run in kubernetes
+# Stage 3 - Wrap with docker and run in kubernetes
 
-## Section Goals
-In this Section, we will take the service we created and wrap it in a Docker container and then deploy to Kubernetes using Helm.  
+## Stage Goals
+In this Stage, we will take the service we created and wrap it in a Docker container and then deploy to Kubernetes using Helm.  
 
 
 
@@ -164,7 +164,7 @@ Due to the Kind configured Kubernetes, after building the docker container, it m
 **Note:** You must use a tag with the container name such as prot-container:l1 so Kubernetes can find it locally.
 
 You will need create a helm template file for the protection service (creating a deployment and a service that exposes port 30004 as a NodePort. Use the namespace variable defined in the values.yaml file. Call your deployment protection and your service protection-svc.
-Add the file to the protection-workshop helm chart. Then use helm to upgrade our wkshp deployment with the new service.
+Add the file to the protection-workshop helm chart. Then use helm to upgrade our  deployment called "wkshp" with the new service.
 
 
 ## Guidance
@@ -197,9 +197,11 @@ CMD ["protection"]
 - To create a helm template file, you can copy the file protection-workshop/templates/tunnel.yaml to a file called protection.yaml and modify accordingly.
 Those two deployments should be structurally very similar. 
 - Remember to use 30004 as the NodePort. It is the one the Kubernetes instance is configured to expose.
-
 - Alternatively, in the root directory of the workshop is a file protection.yaml which can be used.
-
+- The command to upgrade a deployed helm chart is
+	```shell
+	helm upgrade <deployment name> <Chart directory>
+	```
 - Use curl, to test the service
 
 </details>
@@ -256,11 +258,11 @@ curl localhost:30004/ping
 
 </details>
 
-# Section 4 Add new endpoint and call to Tasks Service (steps 1-3)
-## Section Goals
+# Stage 4 Add new endpoint and call to Tasks Service (steps 1-3)
+## Stage Goals
 Now we will start getting in to the main parts of the workshop.
 
-We will add the /vpg Post endpoint to the service. When that end point is called, we will run the flow descirbed in the sequence diagram. At this point of the workshop, we will only create the task in the Task Service. In subsequent Sections, we will fill in more logic.
+We will add the /vpg Post endpoint to the service. When that end point is called, we will run the flow descirbed in the sequence diagram. At this point of the workshop, we will only create the task in the Task Service. In subsequent Stages, we will fill in more logic.
 
 Calls to the Task Service are made using GRPC. The protobuf definition file can be found in the [tasks/tasks/tasks.proto file](tasks/tasks/tasks.proto).
 You will need to copy the go files into the protection directory (keep them in a tasks subdirectory) so they can be used by the protection service.
@@ -268,7 +270,7 @@ You will need to copy the go files into the protection directory (keep them in a
 You will need to add the endpoints of the GRPC service into your code. 
 You will need to add google.golang.org/grpc and google.golang.org/grpc/credentials/insecure to your project.
 
-You will need to update the docker file to copy the tasks folder with the GRPC stubs into the docker file at the Go Root which is at /usr/local/go/src. (See the tips and hints section for a full DOcker file)
+You will need to update the docker file to copy the tasks folder with the GRPC stubs into the docker file at the Go Root which is at /usr/local/go/src. (See the tips and hints Stage for a full DOcker file)
 
 
 Inside Kubernetes, the service is running at tasks-grpc:9001
@@ -532,8 +534,8 @@ curl localhost:30001/tasks
 
 </details>
 
-# Section 5  Call Tunnel to create VPG  (Steps 4-5)
-## Section Goals
+# Stage 5  Call Tunnel to create VPG  (Steps 4-5)
+## Stage Goals
 
 We will now extend our CreateVPG handler function to create a VPG after it created a task.
 
@@ -642,8 +644,8 @@ curl localhost:30002/vpgs
 ```
 </details>
 
-# Section 6 Update Task Status (Step 6)
-## Section Goals
+# Stage 6 Update Task Status (Step 6)
+## Stage Goals
 Now that we have initiated the creation of the VPG we can update the Tasks service that the Task is in progress using the UpdateTask endpoint.
 
 ## Guidance
@@ -716,10 +718,10 @@ Build and test your function.
 
 </details>
 
-# Section 7 - Monitor VPG and update Task when done (Steps 8-10)
+# Stage 7 - Monitor VPG and update Task when done (Steps 8-10)
 
-## Section Goals
-In this Section we will put the finishing touches on our service.
+## Stage Goals
+In this Stage we will put the finishing touches on our service.
 
 Every few seconds, you can check the /vpg/<vpgid> API on the tunnel service to get the completion status of the VPG.
 When the status of the VPG is 100% complete, mark the Task as complete.
