@@ -545,6 +545,8 @@ kubectl get pods
 kubectl logs protection-<THE NAME FROM THE get pods COMMAND>
 ```
 
+## Stage 4 Addendum
+	
 An alternative to uplaoding the image to K8S and  time we can also run our docker outside of k8s
 ```shell
 docker run -it --rm  -e TASKSHOST='localhost:30003' -e TUNNELURL='http://localhost:30002' --network="host"  --name prot prot-container:l1 
