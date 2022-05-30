@@ -544,7 +544,9 @@ kubectl get pods
 # Take real name for pod
 kubectl logs protection-<THE NAME FROM THE get pods COMMAND>
 ```
+</details>
 
+	
 ## Stage 4 Addendum
 	
 An alternative to uplaoding the image to K8S and  time we can also run our docker outside of k8s
@@ -560,7 +562,6 @@ curl localhost:30001/tasks
 
 ```
 
-</details>
 
 # Stage 5  
 ## Stage Goals: Call Tunnel to create VPG  (Steps 4-5)
