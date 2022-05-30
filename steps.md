@@ -274,6 +274,35 @@ Also note that since we already have a pod instance running inside kubernetes, w
 	
 Inside Kubernetes, the task service is running at tasks-grpc:9001
 
+	
+## Note
+To make testing easier - let's make those endpoints configurable
+
+Add these defintions in at ths top of your prot-svc.go file (after the imports)
+``` go
+var TUNNEL_URL string
+var TASKS_GRPC_HOST string
+
+
+```
+
+```go
+func getEnv(key string, defaultValue string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return defaultValue
+	}
+	return value
+}
+
+func main() {
+	log.Println("Protection Service starting up ")
+
+	TASKS_GRPC_HOST = getEnv("TASKSHOST", "tasks-grpc:9001")
+	TUNNEL_URL = getEnv("TUNNELURL", "http://tunnel-svc:8080")
+
+```
+
 
 ## Guidance
 
@@ -370,32 +399,6 @@ kubectl logs protection-<THE NAME FROM THE get pods COMMAND>
  <summary>Detailed Walkthrough</summary>
 
 We will now start  accessing services.
-To make testing easier - let's make those endpoints configurable
-
-Add these defintions in at ths top of your prot-svc.go file (after the imports)
-``` go
-var TUNNEL_URL string
-var TASKS_GRPC_HOST string
-
-
-```
-
-```go
-func getEnv(key string, defaultValue string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return defaultValue
-	}
-	return value
-}
-
-func main() {
-	log.Println("Protection Service starting up ")
-
-	TASKS_GRPC_HOST = getEnv("TASKSHOST", "tasks-grpc:9001")
-	TUNNEL_URL = getEnv("TUNNELURL", "http://tunnel-svc:8080")
-
-```
 
 In your main function, add a new handler to the Rest configuration 
 
