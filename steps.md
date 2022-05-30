@@ -158,8 +158,6 @@ curl localhost:8080/ping
 
 In this Stage, we will take the service we created and wrap it in a Docker container and then deploy to Kubernetes using Helm.  
 
-
-
 Due to the Kind configured Kubernetes, after building the docker container, it must be pushed into the Kubernetes using the Kind command line.
 
 **Note:** You must use a tag with the container name such as prot-container:l1 so Kubernetes can find it locally.
@@ -271,10 +269,11 @@ You will need to copy the go files into the protection directory (keep them in a
 You will need to add the endpoints of the GRPC service into your code. 
 You will need to add google.golang.org/grpc and google.golang.org/grpc/credentials/insecure to your project.
 
-You will need to update the docker file to copy the tasks folder with the GRPC stubs into the docker file at the Go Root which is at /usr/local/go/src. (See the tips and hints Stage for a full DOcker file)
+You will need to update the docker file to copy the tasks folder with the GRPC stubs into the docker file at the Go Root which is at /usr/local/go/src. (See the tips and hints Section for a full Docker file)
+Also note that since we already have a pod instance running inside kubernetes, we will need to restart the pod after building the new image and using the kind command line to push the docker container into Kubernetes (See the guidance section for command lines how to do all that.
+	
+Inside Kubernetes, the task service is running at tasks-grpc:9001
 
-
-Inside Kubernetes, the service is running at tasks-grpc:9001
 
 ## Guidance
 
@@ -313,6 +312,7 @@ Inside Kubernetes, the service is running at tasks-grpc:9001
 	```
 	You can then use the object c as a client to the tasks service
 - Here is an updated Dockerfile that can be used to build and run the portection service:
+
 <details>
   <summary>Dockerfile</summary>
 
@@ -335,6 +335,31 @@ RUN go build -v -o /usr/local/bin ./...
 
 CMD ["protection"]
 
+```
+</details>
+
+	
+- Here are commands on how to build and deploy the docker file into kubernetes
+
+<details>
+  <summary>How to build and run docker in Kubernetes</summary>
+
+```shell
+docker build -t prot-container:l1 .
+
+kind load docker-image prot-container:l1 --name workshop
+
+# You will need to restart the pod in kubernetes
+kubectl rollout restart deployment protection
+
+# test it
+curl -X POST localhost:30004/vpg -d '{"vpgname": "VPG1"}'
+
+# You can easily see the logs for the pod
+kubectl get pods
+
+# Take real name for pod
+kubectl logs protection-<THE NAME FROM THE get pods COMMAND>
 ```
 </details>
 
