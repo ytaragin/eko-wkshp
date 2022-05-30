@@ -179,16 +179,21 @@ Add the file to the protection-workshop helm chart. Then use helm to upgrade our
 FROM golang:1.18
 
 
-WORKDIR /usr/src/app
+
+WORKDIR /workdir
 
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
-COPY *.go ./
-RUN go build -v -o /usr/local/bin ./...
 
-CMD ["protection"]
+COPY . .
+
+RUN go build -o protection
+
+CMD ["/workdir/protection"]
+
+
 
 ```
 </details>
@@ -215,16 +220,20 @@ Create a file called Dockerfile in the protection directory that will build the 
 FROM golang:1.18
 
 
-WORKDIR /usr/src/app
+
+WORKDIR /workdir
 
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
-COPY *.go ./
-RUN go build -v -o /usr/local/bin ./...
 
-CMD ["protection"]
+COPY . .
+
+RUN go build -o protection
+
+CMD ["/workdir/protection"]
+
 
 ```
 
@@ -340,32 +349,6 @@ func main() {
 
 	```
 	You can then use the object c as a client to the tasks service
-- Here is an updated Dockerfile that can be used to build and run the portection service:
-
-<details>
-  <summary>Dockerfile</summary>
-
-```docker
-FROM golang:1.18
-
-
-#### THIS IS THE NEW LINE
-COPY ./tasks /usr/local/go/src/tasks/tasks
-
-
-WORKDIR /usr/src/app
-
-# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
-COPY go.mod go.sum ./
-RUN go mod download && go mod verify
-
-COPY *.go ./
-RUN go build -v -o /usr/local/bin ./...
-
-CMD ["protection"]
-
-```
-</details>
 
 	
 - Here are commands on how to build and deploy the docker file into kubernetes
@@ -481,7 +464,7 @@ Add to your imports the missing imports (we will name it pb to make it easier to
 Add those two packages to the imports in your file:
 ```go
 
-	pb "tasks/tasks"
+	pb "protection/tasks"
 
 	"github.com/gin-gonic/gin"
 
@@ -506,28 +489,6 @@ Lets also update the return to return the new taskid
 
 ``` 
 
-
-
-To run this we need to add the task code to our docker file
-```dockerfile
-FROM golang:1.18
-
-
-#### THIS IS THE NEW LINE
-COPY ./tasks /usr/local/go/src/tasks/tasks
-
-
-WORKDIR /usr/src/app
-
-# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
-COPY go.mod go.sum ./
-RUN go mod download && go mod verify
-
-COPY *.go ./
-RUN go build -v -o /usr/local/bin ./...
-
-CMD ["protection"]
-```
 
 You can build and upload your code to kubernetes
 ```shell
