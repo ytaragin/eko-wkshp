@@ -19,4 +19,4 @@ kind load docker-image pg-migrate:v1 --name workshop
 
 
 cd ..
-helm install wkshp protection-workshop --render-subchart-notes
+helm upgrade --install wkshp protection-workshop --render-subchart-notes
