@@ -12,4 +12,19 @@ nodes:
     hostPort: 30003
   - containerPort: 30004
     hostPort: 30004
+  - containerPort: 30005
+    hostPort: 30005
+  - containerPort: 30006
+    hostPort: 30006
+  - containerPort: 30007
+    hostPort: 30007
+  - containerPort: 30008
+    hostPort: 30008
+  - containerPort: 30009
+    hostPort: 30009
+  - containerPort: 30010
+    hostPort: 30010
+  - containerPort: 30011
+    hostPort: 30011
+
     

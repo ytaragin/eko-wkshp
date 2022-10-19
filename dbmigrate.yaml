@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "wkshp-dbmigrate"
+  labels:
+    app.kubernetes.io/managed-by: wkshp
+    app.kubernetes.io/instance: wkshp
+spec:
+  template:
+    metadata:
+      name: "wkshp-dbmigrate"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: post-install-job
+        image: "pg-migrate:v1"

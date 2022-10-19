@@ -12,5 +12,11 @@ cd zvm-tunnel
 docker build -t tunnel-container:l1 .
 kind load docker-image tunnel-container:l1 --name workshop
 
+cd ../protdb
+docker build -t pg-migrate:v1 .     
+kind load docker-image pg-migrate:v1 --name workshop
+
+
+
 cd ..
-helm install wkshp protection-workshop
+helm install wkshp protection-workshop --render-subchart-notes
