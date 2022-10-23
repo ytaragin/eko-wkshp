@@ -82,6 +82,38 @@ func putTask(c *gin.Context) {
 	taskid := c.Param("taskid")
 	fmt.Println("Updating status for task: " + taskid)
 
+	type TaskRequest struct {
+		Status int
+	}
+
+	var requestBody TaskRequest
+
+	if err := c.BindJSON(&requestBody); err != nil {
+		log.Println("Error parsing body")
+		log.Println(err)
+		c.AbortWithStatusJSON(400, gin.H{"msg": "Invalid Body"})
+		return
+	}
+
+	log.Printf("Received request to update status to %d", requestBody.Status)
+
+	err := taskMgr.UpdateTask(taskid, pb.TaskMessage_TaskStatus(requestBody.Status))
+	if err != nil {
+		c.JSON(404, gin.H{
+			"taskid": taskid,
+		})
+		return
+	}
+
+	c.Writer.WriteHeader(200)
+	return
+
+}
+
+func putTask2(c *gin.Context) {
+	taskid := c.Param("taskid")
+	fmt.Println("Updating status for task: " + taskid)
+
 	type StatusRec struct {
 		status int
 	}

@@ -1,5 +1,5 @@
 # eko-wkshp
-A microservice workshop presented at EKO 2022
+A microservice workshop presented at EKO 2022 and Boost Day October 2022
 
 ![Overview of System](https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/overview/workshop_layout.png)
 

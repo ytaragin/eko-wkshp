@@ -49,6 +49,22 @@ paths:
           description: "Error"
         "200":
           description: "List of all Tasks and their status"
+    post:
+      tags:
+      - "Task Service"
+      summary: "Create a new task"
+      description: ""
+      operationId: "createTask"
+      produces:
+      - "application/json"
+      responses:
+        "400":
+          description: "Error"
+        "200":
+          description: "Created task record"
+          schema:
+            $ref: "#/definitions/TaskResponse"
+
 
   /task/{taskid}:
     get:
@@ -56,7 +72,7 @@ paths:
       - "Task Service"
       summary: "See details of specific task"
       description: ""
-      operationId: "createTask"
+      operationId: "seeTask"
       produces:
       - "application/json"
       parameters:
@@ -71,6 +87,34 @@ paths:
           description: "Task not found"
         "200":
           description: "Task and its status"
+    put:
+      tags:
+      - "Task Service"
+      summary: "Update a specific task"
+      description: ""
+      operationId: "updateTask"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "taskid"
+        in: "path"
+        description: "ID of task to update"
+        required: true
+        type: "string"
+        format: "guid"
+      - in: "body"
+        name: "body"
+        description: "simple string of format status=1"
+        required: true
+
+      responses:
+        "400":
+          description: "Invalid status"
+        "404":
+          description: "Task not found"
+        "200":
+          description: "Task Updated"
+
   /vpgs:
     get:
       tags:
@@ -162,6 +206,19 @@ paths:
   
 
 definitions:
+  TaskResponse:
+    type: "object"
+    required:
+    - "taskid"
+    - "status"
+    properties:
+      taskid:
+        type: "string"
+        format: "guid"
+      status:
+        status: "integer"
+        description: 0 Created 1 In Progress 2 Complete
+        example: 0
   Vpg:
     type: "object"
     required:
