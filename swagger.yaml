@@ -104,8 +104,10 @@ paths:
         format: "guid"
       - in: "body"
         name: "body"
-        description: "simple string of format status=1"
+        description: "Object with the new status"
         required: true
+        schema:
+          $ref: "#/definitions/TaskStatus"     
 
       responses:
         "400":
@@ -216,7 +218,16 @@ definitions:
         type: "string"
         format: "guid"
       status:
-        status: "integer"
+        type: "integer"
+        description: 0 Created 1 In Progress 2 Complete
+        example: 0
+  TaskStatus:
+    type: "object"
+    required:
+    - "status"
+    properties:
+      status:
+        type: "integer"
         description: 0 Created 1 In Progress 2 Complete
         example: 0
   Vpg:
