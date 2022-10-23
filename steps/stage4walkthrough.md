@@ -1,26 +1,7 @@
 # Detailed Walkthrough - Stage 4
 
 
-```shell
-docker build -t prot-container:l1 .
 
-kind load docker-image prot-container:l1 --name workshop
-
-# You will need to restart the pod in kubernetes
-kubectl rollout restart deployment protection
-
-# test it
-curl -X POST localhost:30004/vpg -d '{"vpgname": "VPG1"}'
-
-# You can easily see the logs for the pod
-kubectl get pods
-
-# Take real name for pod
-kubectl logs protection-<THE NAME FROM THE get pods COMMAND>
-```
-</details>
-
-</details>
 
 ## Walkthrough
 <details>
@@ -62,6 +43,10 @@ func createVPG(c *gin.Context) {
 ```
 This code gets and parses the JSON from the request
 But we want to start the process of creating a VPG which starts with creating a Task
+
+
+## 4A - GRPC Details
+
 
 So we need to add code to make GRPC call to the Tasks service
 
@@ -118,6 +103,44 @@ Add those two packages to the imports in your file:
 
 ```
 
+## 4B - Rest Approach
+This is a version of the CreateTask function that uses Rest instead
+
+```go
+func createTaskRest() (string, error) {
+
+	log.Printf("Making REST call to create a task")
+
+	resp, err := http.Post(TASKS_URL+"/task", "application/json", nil)
+	//Handle Error
+	if err != nil {
+		log.Print("An Error Occured %v", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+	//Read the response body\
+	decoder := json.NewDecoder(resp.Body)
+
+	type TaskResponse struct {
+		Taskid string `json:"taskid"`
+		Status int    `json:"status"`
+	}
+	var retobj TaskResponse
+	err = decoder.Decode(&retobj)
+	if err != nil {
+		log.Printf("Error decoding object %v", retobj)
+		return "", err
+	}
+
+	log.Printf("New Task Created %s with status %d", retobj.Taskid, retobj.Status)
+	return retobj.Taskid, nil
+}
+
+```
+
+
+
+## Both Approaches
 
 
 and in the function createVPG, after the  we can call that code after we parse the body of the incoming request (with BindJSON).
@@ -137,15 +160,12 @@ Lets also update the return to return the new taskid
 
 You can build and upload your code to kubernetes
 ```shell
-docker build -t prot-container:l1 .
-
-kind load docker-image prot-container:l1 --name workshop
-
-# You will need to restart the pod in kubernetes
-kubectl rollout restart deployment protection
+# run from within the protection directory
+../utils/deploy_protection.sh
 
 # test it
 curl -X POST localhost:30004/vpg -d '{"vpgname": "VPG1"}'
+
 
 # You can easily see the logs for the pod
 kubectl get pods

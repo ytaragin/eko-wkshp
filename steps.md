@@ -132,24 +132,17 @@ Add the file to the protection-workshop helm chart. Then use helm to upgrade our
   <summary>Dockerfile</summary>
 
 ```docker
-FROM golang:1.18
-
-
-
+FROM golang:1.18 AS builder
 WORKDIR /workdir
-
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
-
-
 COPY . .
+RUN CGO_ENABLED=0 go build -o protection
 
-RUN go build -o protection
-
-CMD ["/workdir/protection"]
-
-
+FROM scratch
+COPY --from=builder /workdir/protection /
+CMD ["/protection"]
 
 ```
 </details>
@@ -310,6 +303,7 @@ Inside Kubernetes, the task service rest endpoint is running at tasks-svc:8080
   <summary>How to build and run docker in Kubernetes</summary>
 
 ```shell
+# run from within the protection directory
 ../utils/deploy_protection.sh
 
 # test it
@@ -320,6 +314,15 @@ curl -X POST localhost:30004/vpg -d '{"vpgname": "VPG1"}'
 
 </details>
 
+## Walkthrough - both options
+<details>
+ <summary>Detailed Walkthrough</summary>
+
+Only click if you are sure you want to see more information
+
+[ Stage 4 Detailed Walkthrough ](steps/stage4walkthrough.md)
+
+</details>
 	
 
 # Stage 5  
@@ -378,8 +381,11 @@ Only click if you are sure you want to see more information
 ## Stage Goals: Update Task Status (Step 6) 
 
 Now that we have initiated the creation of the VPG we can update the Tasks service that the Task is in progress using the UpdateTask endpoint.
+As in Step 4 we can use GRPC or Rest for this step.
 
-## Guidance
+
+## Option A - GRPC
+### Guidance
 
 <details>
   <summary>Tips and Hints</summary>
@@ -400,6 +406,21 @@ Now that we have initiated the creation of the VPG we can update the Tasks servi
 
 
 </details>
+
+## Option B - Rest
+### Guidance
+- The Update Task command, as described in the [swagger documentation](https://editor.swagger.io/?url=https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/swagger.yaml) shows a PUT command is needed for this function
+- The go http package does not have a default method for PUT the way it does for POST or GET
+- This is the way to make a PUT call 
+```go
+	req, err := http.NewRequest("PUT", u, reqBody)
+	if err != nil {
+		return err
+	}
+
+	_, err = http.DefaultClient.Do(req)
+
+```
 
 ## Walkthrough
 <details>
@@ -459,3 +480,91 @@ Only click if you are sure you want to see more information
 
 
 
+# Stage 8
+## Stage Goals: Store VPG and task info in the DB
+
+In this Stage we will store information in the database
+
+- We need to create the tables in the database
+   ```shell
+   kubectl apply -f migrate.yaml
+
+   ```
+- This is the table that is created
+```sql
+CREATE TABLE vpg (
+   vpg_id VARCHAR(50) PRIMARY KEY,
+   task_id VARCHAR(50) NOT NULL,
+   status INT NOT NULL
+);
+```
+
+- There is a tool in the utils directory postgres.sh that connects you a psql client to see what is in the database
+- Here are the connection parameters for the database
+```go
+	const (
+		pgUser     = "postgres"
+		pgPassword = "mysecret"
+		pgHost     = "wkshp-postgresql"
+		pgPort     = 5432
+		pgDatabase = "protection"
+	)
+
+```
+- This is the library to add to go.mod to support postgres db
+```go
+	github.com/jackc/pgx/v4 v4.17.2
+```
+- In DSCC, we use [ SQLC ](https://sqlc.dev/) for SQL queries.  
+    - The folder protdb/db contains a module that contains a set of functions generated for queries.
+	- Copy the db folder into your protection folder
+- These are the functions provided by the provided module
+	- AddVpg
+	- GetNonReadyVPGs
+	- UpdateStatus
+- These are the status values to use toward the database
+    - In Progress = 1
+	- Complete = 2
+	- Error = 3
+
+
+
+## Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+- This is the way to get a connection to a postgres db
+```go
+connectionString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", pgUser, pgPassword, hostname, pgPort, pgDatabase)
+db, err := sql.Open("pgx", connectionString)
+```
+- This is the way to create a repository object to query with:
+```go
+var repo repository.Querier = repository.New(db)
+```
+- The function GetNonReadyVPGs provides a list of VPGs not marked as complete.
+- Here is how you can loop over the returned VPGS
+```go
+for _, v := range nonReadyVPGs {
+		// do something with the vpg records
+	}
+```
+- Context Object can be created like this
+```go
+var ctx context.Context = context.Background()
+```
+
+
+
+</details>
+
+## Walkthrough
+<details>
+ <summary>Detailed Walkthrough</summary>
+Only click if you are sure you want to see more information
+
+[ Stage 8 Detailed Walkthrough ](steps/stage8walkthrough.md)
+
+
+</details>

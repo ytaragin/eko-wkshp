@@ -1,5 +1,6 @@
 # Detailed Walkthrough - Stage 6
 
+## Option A - GRPC
 We need a function to update the status of the task that it is in progress
 ```go
 
@@ -26,6 +27,41 @@ func UpdateTask(id string, status pb.TaskMessage_TaskStatus) error {
 
 }
 ```
+
+## Option B - Rest
+A UpdateTask version that uses Rest
+```go
+func UpdateTask(id string, status int) error {
+	log.Printf("Making REST call to update a task %s", id)
+
+	postBody := []byte(fmt.Sprintf(`{"status": %d}`, status))
+	reqBody := bytes.NewBuffer(postBody)
+
+	u := fmt.Sprintf("%s/task/%s", TASKS_URL, id)
+
+	req, err := http.NewRequest("PUT", u, reqBody)
+	if err != nil {
+		return err
+	}
+
+	_, err = http.DefaultClient.Do(req)
+
+	//Handle Error
+	if err != nil {
+		log.Print("An Error Occured %v", err)
+		return err
+	}
+
+	log.Printf("Status Updated")
+
+	return nil
+}
+
+```
+
+
+## Both Options
+
 
 We can now update the status of the task in our createVPG function 
 
