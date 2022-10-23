@@ -183,6 +183,9 @@ Now we will start getting in to the main parts of the workshop.
 
 We will add the /vpg Post endpoint to the service. When that end point is called, we will run the flow descirbed in the sequence diagram. At this point of the workshop, we will only create the task in the Task Service. In subsequent Stages, we will fill in more logic.
 
+
+## Option A - GRPC
+
 Calls to the Task Service are made using GRPC. The protobuf definition file can be found in the [tasks/tasks/tasks.proto file](tasks/tasks/tasks.proto).
 You will need to copy the go files into the protection directory (keep them in a tasks subdirectory) so they can be used by the protection service.
 
@@ -192,39 +195,13 @@ You will need to add google.golang.org/grpc and google.golang.org/grpc/credentia
 You will need to update the docker file to copy the tasks folder with the GRPC stubs into the docker file at the Go Root which is at /usr/local/go/src. (See the tips and hints Section for a full Docker file)
 Also note that since we already have a pod instance running inside kubernetes, we will need to restart the pod after building the new image and using the kind command line to push the docker container into Kubernetes (See the guidance section for command lines how to do all that.
 	
-Inside Kubernetes, the task service is running at tasks-grpc:9001
+Inside Kubernetes, the task service grpc endpoint is running at tasks-grpc:9001
 
 	
-## Note
-To make testing easier - let's make those endpoints configurable
-
-Add these defintions in at ths top of your prot-svc.go file (after the imports)
-``` go
-var TUNNEL_URL string
-var TASKS_GRPC_HOST string
 
 
-```
 
-```go
-func getEnv(key string, defaultValue string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return defaultValue
-	}
-	return value
-}
-
-func main() {
-	log.Println("Protection Service starting up ")
-
-	TASKS_GRPC_HOST = getEnv("TASKSHOST", "tasks-grpc:9001")
-	TUNNEL_URL = getEnv("TUNNELURL", "http://tunnel-svc:8080")
-
-```
-
-
-## Guidance
+### Guidance
 
 <details>
   <summary>Tips and Hints</summary>
@@ -267,42 +244,83 @@ func main() {
   <summary>How to build and run docker in Kubernetes</summary>
 
 ```shell
-docker build -t prot-container:l1 .
-
-kind load docker-image prot-container:l1 --name workshop
-
-# You will need to restart the pod in kubernetes
-kubectl rollout restart deployment protection
+../utils/deploy_protection.sh
 
 # test it
 curl -X POST localhost:30004/vpg -d '{"vpgname": "VPG1"}'
 
-# You can easily see the logs for the pod
-kubectl get pods
-
-# Take real name for pod
-kubectl logs protection-<THE NAME FROM THE get pods COMMAND>
 ```
 </details>
 
 </details>
 
 	
-## Stage 4 Addendum
+## Option B - Rest
+
+Rather then using the Task service's GRPC endpoint, it can also be called using the Rest endpoint as defined in 
+the [swagger documentation](https://editor.swagger.io/?url=https://raw.githubusercontent.com/ytaragin/eko-wkshp/main/swagger.yaml)
+
+
+Calls to the Task Service are made using GRPC. The protobuf definition file can be found in the [tasks/tasks/tasks.proto file](tasks/tasks/tasks.proto).
+You will need to copy the go files into the protection directory (keep them in a tasks subdirectory) so they can be used by the protection service.
+
+You will need to add the endpoints of the GRPC service into your code. 
+You will need to add google.golang.org/grpc and google.golang.org/grpc/credentials/insecure to your project.
+
+You will need to update the docker file to copy the tasks folder with the GRPC stubs into the docker file at the Go Root which is at /usr/local/go/src. (See the tips and hints Section for a full Docker file)
+Also note that since we already have a pod instance running inside kubernetes, we will need to restart the pod after building the new image and using the kind command line to push the docker container into Kubernetes (See the guidance section for command lines how to do all that.
 	
-An alternative to uploading the image to K8S and  time we can also run our docker outside of k8s
+Inside Kubernetes, the task service rest endpoint is running at tasks-svc:8080
+
+	
+
+
+
+### Guidance
+
+<details>
+  <summary>Tips and Hints</summary>
+
+- Use the http.Post function to make a POST call to the service
+
+- Here is how you can turn a string into a buffer to be used by the post function
+```go
+	reqBody := bytes.NewBuffer([]byte(mystring))
+```
+
+- The reponse from the tunnel service will be a JSON block which we will need to parse. Earlier, we used a function provided by gin-gonic to parse the JSON. 
+  This is not a gin function so we will need to parse the JSON using standard go functionality - though the concept is similar.
+- Create a struct that matches the fields of the JSON (remember first letter of each field must be capitilized). Then you can use the  decoder object to decode into the object.
+```go
+	// define and create an object
+	type CreateResponse struct {
+		Taskid     string `json:"vpgid"`
+		Status int    `json:"status"`
+	}
+	var retobj CreateResponse
+
+   decoder := json.NewDecoder(resp.Body) // resp is from the POST call
+   	err = decoder.Decode(&retobj) // decode into the defined object
+
+```
+
+	
+- Here are commands on how to build and deploy the docker file into kubernetes
+<details>
+  <summary>How to build and run docker in Kubernetes</summary>
+
 ```shell
-docker run -it --rm  -e TASKSHOST='localhost:30003' -e TUNNELURL='http://localhost:30002' --network="host"  --name prot prot-container:l1 
+../utils/deploy_protection.sh
 
-# can then test using local port
-curl -X POST localhost:8080/vpg -d '{"vpgname": "VPG1"}'
-
-# You can see the Task at
-curl localhost:30001/tasks
-
+# test it
+curl -X POST localhost:30004/vpg -d '{"vpgname": "VPG1"}'
 
 ```
+</details>
 
+</details>
+
+	
 
 # Stage 5  
 ## Stage Goals: Call Tunnel to create VPG  (Steps 4-5)

@@ -1,0 +1,3 @@
+export POSTGRES_PASSWORD=$(kubectl get secret --namespace workshop wkshp-postgresql -o jsonpath="{.data.postgres-password}" | base64 --decode)
+kubectl run wkshp-postgresql-client --rm --tty -i --restart='Never' --namespace workshop --image docker.io/bitnami/postgresql:14.2.0-debian-10-r85 --env="PGPASSWORD=$POSTGRES_PASSWORD" \
+ --command -- psql --host wkshp-postgresql -U postgres -d protection -p 5432
