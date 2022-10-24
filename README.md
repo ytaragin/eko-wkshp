@@ -34,6 +34,7 @@ A microservice workshop presented at EKO 2022 and Boost Day October 2022
 | [ Stage 5 ](steps.md#stage-5) | Call tunnel to create VPG | Steps 4-5 | 
 | [ Stage 6 ](steps.md#stage-6) | Update task status to In Progress | Steps 6 | 
 | [ Stage 7 ](steps.md#stage-7)| Wait for VPG completion and update task when done | Steps 8-9 | 
+| [ Stage 8 ](steps.md#stage-8)| Store VPG status in DB |  | 
 
 
 
